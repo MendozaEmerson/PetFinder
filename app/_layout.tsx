@@ -5,20 +5,35 @@ import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
-export const unstable_settings = {
-  anchor: '(app)',
-};
-
 export default function RootLayout() {
   const colorScheme = useColorScheme();
 
+  // Lógica para el estilo del StatusBar:
+  // Si el tema es 'dark' (fondo oscuro), queremos texto 'light'.
+  // Si el tema es 'light' (fondo claro), queremos texto 'dark'.
+  const barStyle = colorScheme === 'dark' ? 'light' : 'dark';
+
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(app)" options={{ headerShown: false }} />
-        <Stack.Screen name="Inicio" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
-      <StatusBar style="auto" />
+      <RootNavigation />
+      <StatusBar style={barStyle} />
     </ThemeProvider>
+  );
+}
+
+// Componente separado para la navegación
+function RootNavigation() {
+  // Esta estructura ya es correcta para la navegación manual
+  return (
+    <Stack>
+      {/* 1. Pantalla de Bienvenida (en la raíz) */}
+      <Stack.Screen name="index" options={{ headerShown: false }} />
+
+      {/* 2. Grupo de Autenticación */}
+      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+
+      {/* 3. Grupo Principal de la App (Tabs) */}
+      <Stack.Screen name="(app)" options={{ headerShown: false }} />
+    </Stack>
   );
 }

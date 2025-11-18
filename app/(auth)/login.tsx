@@ -1,31 +1,25 @@
+import { useAuthViewModel } from '@/src/viewmodels/authviewmodel';
 import { Link } from 'expo-router';
 import React, { useState } from 'react';
 import { ActivityIndicator, Button, StyleSheet, Text, TextInput, View } from 'react-native';
 
-// 1. Importar el Hook del ViewModel
-import { useAuthViewModel } from '@/src/viewmodels/authviewmodel';
-
 export default function LoginScreen() {
-  // 2. Consumir el ViewModel para obtener la función y el estado
   const { signIn, isLoading } = useAuthViewModel();
 
-  // Estado local para controlar los inputs del formulario
-  const [email, setEmail] = useState('test@user.com'); // Valor por defecto para pruebas
-  const [pass, setPass] = useState('123456');
+  const [email, setEmail] = useState('');
+  const [pass, setPass] = useState('');
 
   const handleLogin = async () => {
-    // 3. Llamar a la lógica de negocio del ViewModel
-    // NOTA: No usamos router.replace() aquí. 
-    // La redirección es automática gracias al 'Guardián' en app/_layout.tsx
+    // Llamamos a Supabase a través del ViewModel
     await signIn(email, pass);
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Iniciar Sesión</Text>
+      <Text style={styles.title}>LostPet Finder</Text>
+      <Text style={styles.subtitle}>Iniciar Sesión</Text>
 
       {isLoading ? (
-        // Mostrar indicador de carga si el ViewModel está trabajando
         <ActivityIndicator size="large" color="#0000ff" />
       ) : (
         <View style={styles.formContainer}>
@@ -53,7 +47,7 @@ export default function LoginScreen() {
           </View>
 
           <Link href="/(auth)/register" style={styles.link}>
-            ¿No tienes cuenta? Regístrate
+            ¿No tienes cuenta? Regístrate aquí
           </Link>
         </View>
       )}
@@ -63,7 +57,8 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: '#fff' },
-  title: { fontSize: 28, marginBottom: 30, fontWeight: 'bold', color: '#333' },
+  title: { fontSize: 32, fontWeight: 'bold', color: '#2c3e50', marginBottom: 10 },
+  subtitle: { fontSize: 18, marginBottom: 30, color: '#7f8c8d' },
   formContainer: { width: '100%' },
   label: { marginBottom: 8, color: '#555', fontWeight: '600' },
   input: {

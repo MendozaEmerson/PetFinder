@@ -1,15 +1,50 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
-import { AppState } from 'react-native';
+import { AppState, Platform } from 'react-native';
 import 'react-native-url-polyfill/auto';
 
 // PROYECTO EN SUPABASE
 const supabaseUrl = 'https://pxwwquvpveobhvwunmik.supabase.co';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4d3dxdXZwdmVvYmh2d3VubWlrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0NDc4ODIsImV4cCI6MjA3OTAyMzg4Mn0.cGCVe2PjKh9SZtzpV2LoKeb9pstXSGJADRweIp1j7OA';
 
+// --- Adaptador de Almacenamiento Seguro (Fix para "window is not defined") ---
+const ExpoStorageAdapter = {
+    getItem: (key: string) => {
+        // Si estamos en Web pero NO hay window (Servidor/Build), retornamos null sin error
+        if (Platform.OS === 'web' && typeof window === 'undefined') {
+            return Promise.resolve(null);
+        }
+        try {
+            return AsyncStorage.getItem(key);
+        } catch (e) {
+            return Promise.resolve(null);
+        }
+    },
+    setItem: (key: string, value: string) => {
+        if (Platform.OS === 'web' && typeof window === 'undefined') {
+            return Promise.resolve();
+        }
+        try {
+            return AsyncStorage.setItem(key, value);
+        } catch (e) {
+            return Promise.resolve();
+        }
+    },
+    removeItem: (key: string) => {
+        if (Platform.OS === 'web' && typeof window === 'undefined') {
+            return Promise.resolve();
+        }
+        try {
+            return AsyncStorage.removeItem(key);
+        } catch (e) {
+            return Promise.resolve();
+        }
+    },
+};
+
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
-        storage: AsyncStorage,
+        storage: ExpoStorageAdapter,
         autoRefreshToken: true,
         persistSession: true,
         detectSessionInUrl: false,

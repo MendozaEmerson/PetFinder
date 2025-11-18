@@ -55,18 +55,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // --- Registro (Nuevo) ---
     const signUp = async (email: string, pass: string): Promise<boolean> => {
         setIsLoading(true);
+        console.log("Intentando registrar:", email); // LOG NUEVO
+
         const { error } = await supabase.auth.signUp({
             email,
             password: pass,
         });
 
         if (error) {
+            // LOG DEL ERROR REAL DE SUPABASE
+            console.error("ERROR SUPABASE:", error.message);
+
             Alert.alert("Error en el registro", error.message);
             setIsLoading(false);
             return false;
         }
 
-        Alert.alert("Registro Exitoso", "¡Cuenta creada! Por favor inicia sesión.");
+        console.log("Registro exitoso en Supabase"); // LOG DE ÉXITO
+        Alert.alert("Registro Exitoso", "¡Cuenta creada!");
         setIsLoading(false);
         return true;
     };

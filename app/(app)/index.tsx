@@ -1,28 +1,44 @@
-import { useRouter } from 'expo-router';
 import React from 'react';
-import { Button, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Button, StyleSheet, Text, View } from 'react-native';
+
+// 1. Importamos el Hook del ViewModel
+import { useAuthViewModel } from '@/src/viewmodels/authviewmodel';
 
 export default function HomeTab() {
-  // 1. Obtenemos el router
-  const router = useRouter();
+  // 2. ELIMINAMOS 'useRouter'. Ya no lo necesitamos aquí.
+  // const router = useRouter(); 
 
-  const handleLogout = () => {
-    console.log("Cerrando sesión y navegando a / (Bienvenida)");
+  // 3. Consumimos el estado y la función del ViewModel
+  const { signOut, isLoading } = useAuthViewModel();
 
-    // 2. Usamos router.replace para volver a la pantalla de bienvenida
-    router.replace('../');
+  const handleLogout = async () => {
+    console.log("Solicitando cierre de sesión al ViewModel...");
+
+    // 4. Llamamos a la acción del negocio.
+    // NO navegamos manualmente. El cambio de estado (isAuthenticated = false)
+    // disparará automáticamente la redirección en app/_layout.tsx
+    await signOut();
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Home (App)</Text>
-      <Text>¡Estás "autenticado"!</Text>
-      <Button title="Cerrar Sesión (Sign Out)" onPress={handleLogout} />
+      <Text style={{ marginBottom: 20 }}>¡Estás autenticado!</Text>
+
+      {/* 5. Usamos isLoading para dar feedback visual */}
+      {isLoading ? (
+        <ActivityIndicator color="blue" />
+      ) : (
+        <Button
+          title="Cerrar Sesión (Sign Out)"
+          onPress={handleLogout}
+        />
+      )}
     </View>
   );
 }
+
 const styles = StyleSheet.create({
-  // ... (tus estilos)
   container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  title: { fontSize: 24, marginBottom: 20 },
+  title: { fontSize: 24, marginBottom: 20, fontWeight: 'bold' },
 });

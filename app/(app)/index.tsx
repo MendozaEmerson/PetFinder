@@ -36,7 +36,7 @@ const MOCK_PETS: Pet[] = [
     createdAt: new Date().toISOString(),
     userId: '123',
   },
-    {
+  {
     id: '3',
     name: 'Rocky',
     imageUrl: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400',
@@ -76,7 +76,7 @@ export default function HomeTab() {
       <View style={styles.header}>
         <Text style={styles.title}>Mascotas perdidas</Text>
         <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-          <Text style={styles.logoutText}></Text>
+          <Text style={styles.logoutText}>Cerrar Sesión</Text>
         </TouchableOpacity>
       </View>
 
@@ -99,8 +99,8 @@ export default function HomeTab() {
           data={filteredPets}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <PetCard 
-              pet={item} 
+            <PetCard
+              pet={item}
               onPress={() => handlePetPress(item)}
             />
           )}

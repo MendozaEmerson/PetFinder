@@ -1,4 +1,4 @@
-import { SightingFormData, SightingSuccessResponse } from '@/src/models/sightingmodel';
+import { BackendSighting, Sighting, SightingFormData, SightingSuccessResponse } from '@/src/models/sightingmodel';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AxiosError, AxiosResponse } from 'axios';
 import { Platform } from 'react-native';
@@ -100,6 +100,66 @@ class SightingService {
             throw new Error(`[HTTP ${status}] ${errorMessage}`);
         }
     }
+
+    /**
+     * OBTIENE EL FEED DE AVISTAMIENTOS
+     */
+    async getSightings(): Promise<Sighting[]> {
+        try {
+            // 1. Llamada al endpoint GET /api/sighting-reports
+            const response: AxiosResponse<{ success: boolean; data: BackendSighting[] }> = await api.get('/sighting-reports', {
+                params: {
+                    limit: 20,
+                    status: 'En_Calle' // Filtramos por defecto los que están en la calle
+                }
+            });
+
+            if (!response.data.success || !response.data.data) {
+                return [];
+            }
+
+            console.log("Avistamientos recibidos:", response.data.data.length);
+
+            // 2. EL ADAPTADOR (Mapping)
+            // Convertimos los datos del backend al formato Sighting compatible con PetCard
+            return response.data.data.map((item) => ({
+                id: item.report_id,
+
+                // Manejo robusto de imagen
+                imageUrl: (item.image_url && item.image_url.trim() !== '')
+                    ? item.image_url
+                    : 'https://placehold.co/400x300/png?text=Sin+Imagen',
+
+                location: item.location_text || 'Ubicación desconocida',
+
+                // Mapeo de fecha
+                createdAt: item.sighting_date,
+
+                // Mapeamos el estado del backend a 'found' para que PetCard lo pinte verde (si tu card usa esa lógica)
+                status: 'found',
+
+                description: item.description,
+
+                // En avistamientos no sabemos el nombre, ponemos uno genérico o la raza
+                name: item.breed || 'Mascota sin nombre',
+
+                // Normalización de especie
+                type: this.mapSpecies(item.species)
+            }));
+
+        } catch (e) {
+            console.error('Error fetching sightings:', e);
+            throw new Error('No se pudieron cargar los avistamientos.');
+        }
+    }
+
+    private mapSpecies(species: string): 'dog' | 'cat' | 'other' {
+        const s = species?.toLowerCase() || '';
+        if (s.includes('perro') || s.includes('dog')) return 'dog';
+        if (s.includes('gato') || s.includes('cat')) return 'cat';
+        return 'other';
+    }
+
 }
 
 export const sightingService = new SightingService();

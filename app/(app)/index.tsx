@@ -1,4 +1,3 @@
-import { useHomeViewModel } from '@/src/viewmodels/homeviewmodel';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import {
@@ -13,14 +12,24 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-// Asegúrate de importar tu PetCard correctamente
+// Importamos el ViewModel limpio
 import { PetCard } from '@/components/pet-card';
+import { useHomeViewModel } from '@/src/viewmodels/homeviewmodel';
+
+const COLORS = {
+  background: '#f8f9fa',
+  headerBg: '#fff',
+  text: '#2c3e50',
+  success: '#4caf50', // Verde para tema de "Encontrados"
+  accent: '#FF9500'
+};
 
 export default function HomeTab() {
   const router = useRouter();
 
+  // Conexión al ViewModel
   const {
-    reports,
+    reports: sightings, // Renombramos la variable para claridad
     isLoading,
     refreshing,
     error,
@@ -30,10 +39,9 @@ export default function HomeTab() {
     signOut
   } = useHomeViewModel();
 
-  const handlePetPress = (petId: string) => {
-    // Aquí navegarías al detalle
-    // router.push(`/(app)/pet-details?id=${petId}`);
-    console.log("Ver detalle de:", petId);
+  const handlePetPress = (id: string) => {
+    // router.push(`/(app)/sighting-details?id=${id}`);
+    console.log("Ver detalle avistamiento:", id);
   };
 
   return (
@@ -42,7 +50,10 @@ export default function HomeTab() {
 
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Mascotas Perdidas</Text>
+        <View>
+          <Text style={styles.title}>Avistamientos</Text>
+          <Text style={styles.subtitle}>Mascotas encontradas cerca</Text>
+        </View>
         <TouchableOpacity onPress={() => signOut()} style={styles.logoutButton}>
           <Text style={{ fontSize: 24 }}>🚪</Text>
         </TouchableOpacity>
@@ -53,7 +64,7 @@ export default function HomeTab() {
         <Text style={styles.searchIcon}>🔍</Text>
         <TextInput
           style={styles.searchInput}
-          placeholder="Buscar por nombre, raza..."
+          placeholder="Buscar por zona, descripción..."
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
@@ -68,27 +79,36 @@ export default function HomeTab() {
 
       {/* Lista */}
       {isLoading ? (
-        <ActivityIndicator size="large" color="#FF9500" style={styles.loader} />
+        <ActivityIndicator size="large" color={COLORS.success} style={styles.loader} />
       ) : (
         <FlatList
-          data={reports}
-          // AHORA SÍ FUNCIONA: item.id existe gracias al adaptador
+          data={sightings}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <PetCard
-              pet={item}
+              pet={{
+                // Adaptamos los datos para PetCard
+                id: item.id,
+                name: item.name,
+                imageUrl: item.imageUrl,
+                location: item.location,
+                type: item.type,
+                status: 'found', // Forzamos el estado visual a "Encontrado"
+                createdAt: item.createdAt,
+                userId: 'unknown',
+              }}
               onPress={() => handlePetPress(item.id)}
             />
           )}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#FF9500']} />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[COLORS.success]} />
           }
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>
-                {searchQuery ? 'No se encontraron resultados' : 'No hay reportes activos'}
+                {searchQuery ? 'No se encontraron resultados' : 'No hay avistamientos recientes'}
               </Text>
             </View>
           }
@@ -99,7 +119,7 @@ export default function HomeTab() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8f9fa' },
+  container: { flex: 1, backgroundColor: COLORS.background },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -107,19 +127,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 10,
     paddingBottom: 12,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.headerBg,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
   },
-  title: { fontSize: 24, fontWeight: 'bold', color: '#2c3e50' },
+  title: { fontSize: 24, fontWeight: 'bold', color: COLORS.text },
+  subtitle: { fontSize: 14, color: COLORS.success },
   logoutButton: { padding: 8 },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
     marginHorizontal: 16,
-    marginTop: 10,
+    marginTop: 16,
     marginBottom: 8,
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingVertical: 12,
     borderRadius: 12,
     elevation: 2,
     shadowColor: '#000',
@@ -128,7 +151,7 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
   },
   searchIcon: { fontSize: 18, marginRight: 8 },
-  searchInput: { flex: 1, fontSize: 16, color: '#2c3e50' },
+  searchInput: { flex: 1, fontSize: 16, color: COLORS.text },
   errorContainer: {
     backgroundColor: '#ffebee',
     padding: 12,

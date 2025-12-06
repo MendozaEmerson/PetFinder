@@ -1,9 +1,10 @@
-import { feedService, LostReport } from '@/src/services/feedservice';
+import { Sighting } from '@/src/models/sightingmodel';
+import { sightingService } from '@/src/services/sightservice'; // ⬅️ Cambio de servicio
 import { useCallback, useEffect, useState } from 'react';
 import { useAuthViewModel } from './authviewmodel';
 
 export const useHomeViewModel = () => {
-    const [reports, setReports] = useState<LostReport[]>([]);
+    const [sightings, setSightings] = useState<Sighting[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -11,14 +12,13 @@ export const useHomeViewModel = () => {
 
     const { signOut } = useAuthViewModel();
 
-    const loadReports = async () => {
-        // Si estamos refrescando, no mostramos el spinner de carga completa
+    const loadData = async () => {
         if (!refreshing) setIsLoading(true);
-
         try {
             setError(null);
-            const data = await feedService.getLostReports();
-            setReports(data);
+            // ⬅️ Llamamos a getSightings
+            const data = await sightingService.getSightings();
+            setSightings(data);
         } catch (e) {
             setError(e instanceof Error ? e.message : 'Error de conexión');
         } finally {
@@ -28,23 +28,23 @@ export const useHomeViewModel = () => {
     };
 
     useEffect(() => {
-        loadReports();
+        loadData();
     }, []);
 
     const onRefresh = useCallback(() => {
         setRefreshing(true);
-        loadReports(); // El estado refreshing se maneja dentro de loadReports
+        loadData();
     }, []);
 
-    // Filtro local por búsqueda
-    const filteredReports = reports.filter(report =>
-        report.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        report.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        report.breed.toLowerCase().includes(searchQuery.toLowerCase())
+    // Lógica de Filtrado (Búsqueda local)
+    const filteredList = sightings.filter(item =>
+        item.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     return {
-        reports: filteredReports,
+        reports: filteredList, // Mantenemos el nombre 'reports' para no romper la vista, o renombramos
         isLoading,
         refreshing,
         error,

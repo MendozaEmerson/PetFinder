@@ -19,3 +19,29 @@ export interface SightingSuccessResponse {
         matches_found?: number; // Opcional, si el BE devuelve coincidencias
     };
 }
+
+// Lo que llega "crudo" del Backend
+export interface BackendSighting {
+    report_id: string;
+    user_id: string;
+    image_url: string | null;
+    species: string; // 'Perro', 'Gato', etc.
+    breed?: string;
+    status: SightingStatus;
+    location_text: string;
+    sighting_date: string; // ISO String
+    description?: string;
+}
+
+// La estructura limpia que usará tu UI (PetCard)
+export interface Sighting {
+    id: string;
+    imageUrl: string;
+    location: string;
+    createdAt: string;
+    status: string; // 'lost' | 'found' para compatibilidad visual con PetCard
+    type: 'dog' | 'cat' | 'other';
+    description?: string;
+    // En avistamientos no suele haber nombre, pero la card lo pide
+    name: string;
+}
